@@ -1,226 +1,129 @@
-import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+window.showView = (viewName) => {
+    // 1. Mostrar la sección
+    const target = document.getElementById(`view-calculator`);
+    if (target) target.classList.remove('hidden');
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB0YYI7RqQbAxwuuKWAH-zZo19VBAmt21Y",
-  authDomain: "contratosmensualeshorizonte.firebaseapp.com",
-  projectId: "contratosmensualeshorizonte",
-  storageBucket: "contratosmensualeshorizonte.firebasestorage.app",
-  messagingSenderId: "395646013611",
-  appId: "1:395646013611:web:afbc01af635ba0de25a7ee",
-  measurementId: "G-HCF57HSFG5"
-};
+    // 2. Resaltar Botón Cotizar en Ámbar/Amarillo
+    const btn = document.getElementById('nav-calc');
+    if (btn) {
+        btn.classList.remove('opacity-40');
+        btn.classList.add('opacity-100');
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const transaccionesRef = collection(db, "transacciones");
-const categoriasRef = collection(db, "categorias");
+        const icon = btn.querySelector('svg');
+        const text = btn.querySelector('span');
 
-let tipoActual = 'ingreso';
+        if (icon) {
+            // Clases de Tailwind para el color base
+            icon.classList.remove('text-slate-400');
+            icon.classList.add('text-amber-400');
+            
+            // Estilos manuales para el "Glow" (brillo)
+            icon.style.color = '#fbbf24'; // Color ámbar exacto
+            icon.style.filter = 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))';
+        }
 
-const setUI = (id, valor) => {
-    const el = document.getElementById(id);
-    if (el) el.innerText = valor;
-};
-
-// --- FUNCIONES GLOBALES ---
-
-window.cambiarTab = (tabId) => {
-    const tabs = ['dashboard', 'reportes', 'ajustes'];
-    tabs.forEach(t => {
-        const el = document.getElementById(`tab-${t}`);
-        if(el) el.classList.add('hidden');
-    });
-    const target = document.getElementById(`tab-${tabId}`);
-    if(target) target.classList.remove('hidden');
-
-    document.querySelectorAll('nav button').forEach(btn => {
-        btn.classList.remove('text-blue-600');
-        btn.classList.add('text-gray-400');
-    });
-
-    const botonActivo = document.querySelector(`nav button[onclick*="'${tabId}'"]`);
-    if (botonActivo) {
-        botonActivo.classList.remove('text-gray-400');
-        botonActivo.classList.add('text-blue-600');
+        if (text) {
+            text.classList.remove('text-slate-400');
+            text.classList.add('text-amber-400');
+            text.style.color = '#fbbf24';
+            text.style.fontWeight = '900';
+        }
     }
 };
 
-window.abrirModal = (tipo) => {
-    tipoActual = tipo;
-    const titulo = document.getElementById('modal-titulo');
-    const select = document.getElementById('form-categoria');
-    if(titulo) titulo.innerText = tipo === 'ingreso' ? 'Nuevo Ingreso' : 'Nuevo Gasto';
+// Variable global para conectar los dos pasos
+window.totalAppUSD = 0;
+window.tasaCambioActual = 26.60; 
+window.inversionTotalUSD_Global = 0;
+window.costoAppSHEIN_Global = 0;
+
+window.toggleShippingInput = () => {
+    const isChecked = document.getElementById('toggle-shipping').checked;
+    const input = document.getElementById('calc-shipping-usa');
     
-    if(tipo === 'ingreso') {
-        select.innerHTML = '<option value="CONTRATO MENSUAL">CONTRATO MENSUAL</option>';
+    if (isChecked) {
+        input.disabled = false;
+        input.classList.remove('opacity-40');
+        input.classList.add('opacity-100');
     } else {
-        actualizarSelectGastos();
-    }
-    const modal = document.getElementById('modal-registro');
-    if(modal) modal.classList.remove('hidden');
-};
-
-const actualizarSelectGastos = () => {
-    onSnapshot(categoriasRef, (snapshot) => {
-        const select = document.getElementById('form-categoria');
-        if(select && tipoActual === 'gasto') {
-            select.innerHTML = "";
-            snapshot.forEach(d => {
-                const cat = d.data();
-                if(cat.tipo === 'gasto') select.add(new Option(cat.nombre, cat.nombre));
-            });
-        }
-    });
-};
-
-window.cerrarModal = () => {
-    const modal = document.getElementById('modal-registro');
-    if(modal) modal.classList.add('hidden');
-};
-
-window.guardarEnFirebase = async () => {
-    const montoInput = document.getElementById('form-monto');
-    const catInput = document.getElementById('form-categoria');
-    const monto = parseFloat(montoInput.value);
-    if (!monto) return alert("Ingresa un monto válido");
-
-    await addDoc(transaccionesRef, {
-        tipo: tipoActual,
-        monto: monto,
-        categoria: catInput.value,
-        fecha: new Date()
-    });
-    window.cerrarModal();
-    montoInput.value = "";
-};
-
-window.crearCategoria = async () => {
-    const nombreInp = document.getElementById('nueva-cat-nombre');
-    const tipoInp = document.getElementById('nueva-cat-tipo');
-    const nombre = nombreInp.value.toUpperCase().trim();
-    if (nombre) {
-        await addDoc(categoriasRef, { nombre, tipo: tipoInp.value });
-        nombreInp.value = "";
+        input.disabled = true;
+        input.classList.remove('opacity-100');
+        input.classList.add('opacity-40');
     }
 };
 
-// --- FUNCIÓN PARA BORRAR ---
-window.eliminarDato = async (coleccion, id) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este registro?")) {
-        try {
-            await deleteDoc(doc(db, coleccion, id));
-        } catch (error) {
-            console.error("Error al eliminar:", error);
-            alert("No se pudo eliminar el registro.");
-        }
-    }
-};
-
-// --- ESCUCHA DE TRANSACCIONES ---
-// Función para cambiar entre Historial y Análisis
-window.cambiarSubTab = (subId) => {
-    const hist = document.getElementById('sub-tab-historial');
-    const anal = document.getElementById('sub-tab-analisis');
-    const btnHist = document.getElementById('btn-sub-historial');
-    const btnAnal = document.getElementById('btn-sub-analisis');
-
-    if(subId === 'historial') {
-        hist.classList.remove('hidden');
-        anal.classList.add('hidden');
-        btnHist.classList.add('bg-white', 'shadow-sm', 'text-blue-900');
-        btnAnal.classList.remove('bg-white', 'shadow-sm', 'text-blue-900');
-        btnAnal.classList.add('text-gray-500');
-    } else {
-        hist.classList.add('hidden');
-        anal.classList.remove('hidden');
-        btnAnal.classList.add('bg-white', 'shadow-sm', 'text-blue-900');
-        btnHist.classList.remove('bg-white', 'shadow-sm', 'text-blue-900');
-        btnHist.classList.add('text-gray-400');
-    }
-};
-
-// Escucha de Transacciones Actualizada
-onSnapshot(transaccionesRef, (snapshot) => {
-    let ingresos = 0, gastos = 0, sumaCat = {};
-    const formatoLempira = (valor) => "L " + valor.toLocaleString('es-HN', { minimumFractionDigits: 2 });
+// PASO 1: Calcular lo que se paga en la App de SHEIN
+window.calcularPrecioApp = () => {
+    const precioBase = parseFloat(document.getElementById('calc-price').value) || 0;
     
-    const containerHistorial = document.getElementById('lista-movimientos-historial');
-    const containerAnalisis = document.getElementById('lista-categorias-gastos');
+    // VALIDACIÓN: Solo sumar si el toggle está activo
+    const shippingToggle = document.getElementById('toggle-shipping').checked;
+    const envioUSA = shippingToggle ? (parseFloat(document.getElementById('calc-shipping-usa').value) || 0) : 0;
+
+    const taxCalculado = precioBase * 0.09;
+    window.totalAppUSD = precioBase + envioUSA + taxCalculado;
+
+    // ... resto de tu código para mostrar resultados
+    document.getElementById('res-val-tax').innerText = `$ ${taxCalculado.toFixed(2)}`;
+    document.getElementById('res-val-total-app').innerText = `$ ${window.totalAppUSD.toFixed(2)}`;
     
-    if(containerHistorial) containerHistorial.innerHTML = "";
-    if(containerAnalisis) containerAnalisis.innerHTML = "";
+    document.getElementById('result-app-step').classList.remove('hidden');
+    document.getElementById('step-2-container').classList.remove('hidden');
+};
 
-    snapshot.forEach(docSnap => {
-        const d = docSnap.data();
-        const id = docSnap.id;
+// PASO 2: Calcular el precio final de reventa en Honduras
+window.calcularPrecioVentaFinal = () => {
+    const fleteHN = parseFloat(document.getElementById('calc-flete-hn').value) || 0;
+    
+    // Inversión que tú haces
+    window.inversionTotalUSD_Global = window.totalAppUSD + fleteHN;
 
-        if(d.tipo === 'ingreso') {
-            ingresos += d.monto;
-        } else {
-            gastos += d.monto;
-            // Sumamos por categoría para el análisis
-            sumaCat[d.categoria] = (sumaCat[d.categoria] || 0) + d.monto;
-        }
+    // Lógica de utilidad automática (Paso inicial)
+    let margen = 0;
+    if (window.totalAppUSD <= 5) margen = 1.00;
+    else if (window.totalAppUSD <= 20) margen = 0.80;
+    else if (window.totalAppUSD <= 50) margen = 0.50;
+    else margen = 0.40;
 
-        // 1. Llenamos el HISTORIAL (Para borrar)
-        if(containerHistorial) {
-            const colorMonto = d.tipo === 'ingreso' ? 'text-green-600' : 'text-red-500';
-            containerHistorial.innerHTML += `
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
-                    <div>
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">${d.categoria}</p>
-                        <span class="text-[11px] font-bold text-gray-700 uppercase">${d.tipo}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-black ${colorMonto}">${d.tipo === 'ingreso' ? '+' : '-'} ${formatoLempira(d.monto)}</span>
-                        <button onclick="window.eliminarDato('transacciones', '${id}')" class="text-gray-300 p-2">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    </div>
-                </div>`;
-        }
-    });
+    // Cálculo inicial
+    const gananciaUSD = window.totalAppUSD * margen;
+    const utilidadLpsInicial = Math.round(gananciaUSD * window.tasaCambioActual);
+    
+    // Llenar el campo de utilidad (para que puedas editarlo después)
+    document.getElementById('res-val-utilidad-input').value = utilidadLpsInicial;
 
-    // 2. Llenamos el ANÁLISIS (Barras de porcentaje)
-    if(containerAnalisis) {
-        const categoriasOrdenadas = Object.entries(sumaCat).sort((a, b) => b[1] - a[1]);
-        categoriasOrdenadas.forEach(([cat, total]) => {
-            const porcentaje = gastos > 0 ? (total / gastos) * 100 : 0;
-            containerAnalisis.innerHTML += `
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-50">
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-xs font-black text-gray-700 uppercase">${cat}</span>
-                        <span class="text-md font-black text-red-500">${formatoLempira(total)}</span>
-                    </div>
-                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                        <div class="bg-red-500 h-full rounded-full transition-all duration-1000" style="width: ${porcentaje}%"></div>
-                    </div>
-                    <p class="text-[9px] text-gray-400 mt-2 font-bold italic">${porcentaje.toFixed(1)}% del gasto total</p>
-                </div>`;
-        });
-    }
+    // Mostrar todo
+    actualizarPantallaFinal(utilidadLpsInicial);
+};
 
-    setUI('total-balance', formatoLempira(ingresos - gastos));
-    setUI('dash-ingresos', "+" + formatoLempira(ingresos));
-    setUI('dash-gastos', "-" + formatoLempira(gastos));
-});
+// ESTA ES LA FUNCIÓN MÁGICA: Si escribes en Utilidad, cambia el precio
+window.recalcularDesdeUtilidad = () => {
+    const nuevaUtilidadLps = parseFloat(document.getElementById('res-val-utilidad-input').value) || 0;
+    actualizarPantallaFinal(nuevaUtilidadLps);
+};
 
-// --- ESCUCHA DE CATEGORÍAS (Para ajustes) ---
-onSnapshot(categoriasRef, (snapshot) => {
-    const listaAjustes = document.getElementById('lista-ajustes-categorias');
-    if(listaAjustes) {
-        listaAjustes.innerHTML = "";
-        snapshot.forEach(docSnap => {
-            const cat = docSnap.data();
-            const id = docSnap.id;
-            listaAjustes.innerHTML += `
-                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl mb-2">
-                    <span class="font-bold text-gray-700 text-[11px] uppercase">${cat.nombre} (${cat.tipo})</span>
-                    <button onclick="window.eliminarDato('categorias', '${id}')" class="text-red-400 p-2">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>`;
-        });
-    }
-});
+function actualizarPantallaFinal(utilidadLps) {
+    // 1. Cálculos de base
+    const gananciaUSDReal = utilidadLps / window.tasaCambioActual;
+    const inversionLps = window.inversionTotalUSD_Global * window.tasaCambioActual;
+    
+    // 2. Precio final (Inversión + Ganancia deseada)
+    const precioFinalLps = Math.ceil(inversionLps + utilidadLps);
+
+    // 3. Cálculo del % de margen real
+    const porcentajeReal = (gananciaUSDReal / window.totalAppUSD) * 100;
+
+    // 4. MOSTRAR RESULTADOS
+    document.getElementById('calc-result').classList.remove('hidden');
+    
+    // Precio grande arriba
+    document.getElementById('res-total').value = precioFinalLps;
+    
+    // Inversión (Dólares y Lempiras)
+    document.getElementById('res-val-costo-usd').innerText = `$ ${window.inversionTotalUSD_Global.toFixed(2)}`;
+    document.getElementById('res-val-costo-lps').innerText = `L ${inversionLps.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    
+    // Margen y Utilidad
+    document.getElementById('res-val-margen').innerText = `${porcentajeReal.toFixed(0)}%`;
+    // El campo de utilidad ya tiene el valor porque lo escribiste tú o se puso al inicio
+}
