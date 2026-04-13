@@ -1,137 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <title>STL HORIZONTE</title>
-
-    <link rel="apple-touch-icon" href="icon.png">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="STL Horizonte">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="apple-touch-icon" href="logo.png">
     
-  <body>
-  <div id="app" class="bg-gray-50 min-h-screen pb-24 text-gray-800">
-  
-  <header class="bg-blue-900 text-white p-6 mt-10 rounded-[1.5rem] mx-4 shadow-lg">
-    <h1 class="text-2xl font-black leading-tight">STL HORIZONTE</h1>
-    <p class="opacity-80 text-xs font-bold tracking-widest uppercase">Contratos Mensuales</p>
-</header>
+    <title>JESSI SHOP | COTIZADOR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <section id="tab-dashboard" class="p-4 space-y-6">
-    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-      <p class="text-gray-400 text-xs uppercase font-black tracking-widest mb-1">Balance General</p>
-      <h2 id="total-balance" class="text-4xl font-black text-blue-900 leading-none">$0.00</h2>
-      <div class="flex mt-6 gap-3">
-        <div class="flex-1 bg-green-50 p-4 rounded-2xl text-green-700 text-center">
-          <p class="text-[10px] font-bold uppercase">Ingresos</p>
-          <span id="dash-ingresos" class="font-black text-lg">+$0</span>
+<script src="tu-archivo-logica.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        section { animation: fadeIn 0.4s ease-out forwards; }
+       </style>
+</head>
+<body class="bg-slate-50">
+    
+
+   <div id="app" class="max-w-md mx-auto min-h-screen relative pb-32">
+        
+        <main id="main-content" class="px-5 pt-6">
+            
+              
+<section id="view-calculator" class="space-y-6 pb-28">
+    <header class="mt-4 relative overflow-hidden bg-[#08121e] rounded-[1.5rem] p-5 text-white shadow-2xl">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
+        <h2 class="text-[14px] font-black uppercase tracking-[0.15em] text-slate-200">COTIZADOR <span class="text-amber-400">JESSI SHOP</span></h2>
+        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Importaciones SHEIN Honduras</p>
+    </header>
+
+    <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-4">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black">1</span>
+            <h3 class="text-[10px] font-black uppercase text-slate-600 tracking-widest">Costos en la App (USA)</h3>
         </div>
-        <div class="flex-1 bg-red-50 p-4 rounded-2xl text-red-700 text-center">
-          <p class="text-[10px] font-bold uppercase">Gastos</p>
-          <span id="dash-gastos" class="font-black text-lg">-$0</span>
+
+        <div>
+            <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1 block">Precio del Producto ($)</label>
+            <input type="number" id="calc-price" placeholder="0.00" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none ring-2 ring-transparent focus:ring-blue-500/10 transition-all">
         </div>
-      </div>
+
+       <div class="space-y-2">
+    <div class="flex justify-between items-center px-2">
+        <label class="text-[9px] font-black uppercase text-slate-400 block">Envío SHEIN a USA ($)</label>
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="toggle-shipping" class="sr-only peer" onchange="toggleShippingInput()">
+            <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+    </div>
+    <input type="number" id="calc-shipping-usa" value="3.99" 
+           class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none transition-all opacity-40" 
+           disabled>
+</div>
+
+        <button onclick="calcularPrecioApp()" class="w-full bg-slate-800 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all uppercase text-[9px] tracking-widest">
+            Generar Precio Final App
+        </button>
+
+        <div id="result-app-step" class="hidden bg-blue-50 p-4 rounded-2xl border border-blue-100 space-y-2 animate-slide-up">
+            <div class="flex justify-between text-[10px] font-bold text-blue-800">
+                <span>Tax estimado (9%):</span>
+                <span id="res-val-tax">$ 0.00</span>
+            </div>
+            <div class="flex justify-between text-sm font-black text-blue-900 border-t border-blue-200 pt-2">
+                <span>TOTAL APP SHEIN:</span>
+                <span id="res-val-total-app">$ 0.00</span>
+            </div>
+        </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
-      <button onclick="window.abrirModal('ingreso')" class="bg-white border-2 border-green-500 p-6 rounded-[2rem] flex flex-col items-center gap-2 active:scale-95 transition-transform">
-        <i class="fa-solid fa-circle-plus text-green-500 text-3xl"></i>
-        <span class="font-black text-xs uppercase">Nuevo Ingreso</span>
-      </button>
-      <button onclick="window.abrirModal('gasto')" class="bg-white border-2 border-red-500 p-6 rounded-[2rem] flex flex-col items-center gap-2 active:scale-95 transition-transform">
-        <i class="fa-solid fa-circle-minus text-red-500 text-3xl"></i>
-        <span class="font-black text-xs uppercase">Nuevo Gasto</span>
-      </button>
-    </div>
-  </section>
+    <div id="step-2-container" class="hidden bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-4 animate-slide-up">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="bg-amber-100 text-amber-600 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black">2</span>
+            <h3 class="text-[10px] font-black uppercase text-slate-600 tracking-widest">Logística y Reventa (HN)</h3>
+        </div>
 
- <section id="tab-reportes" class="p-4 hidden space-y-4">
-    <div class="flex bg-gray-200 p-1 rounded-2xl mb-4">
-        <button onclick="window.cambiarSubTab('historial')" id="btn-sub-historial" class="flex-1 py-2 rounded-xl font-black text-[10px] uppercase bg-white shadow-sm text-blue-900 transition-all">Historial</button>
-        <button onclick="window.cambiarSubTab('analisis')" id="btn-sub-analisis" class="flex-1 py-2 rounded-xl font-black text-[10px] uppercase text-gray-500 transition-all">Análisis de Gastos</button>
+        <div>
+            <label class="text-[9px] font-black uppercase text-slate-400 ml-2 mb-1 block">Flete USA a HN ($)</label>
+            <input type="number" id="calc-flete-hn" value="1.99" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold outline-none">
+        </div>
+
+        <button onclick="calcularPrecioVentaFinal()" class="w-full bg-amber-500 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-amber-200 active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em]">
+            Calcular Precio Final Lps
+        </button>
     </div>
 
-    <div id="sub-tab-historial" class="space-y-3">
-        <div id="lista-movimientos-historial" class="space-y-3"></div>
+    <div id="calc-result" class="hidden animate-fadeIn px-2">
+        <div class="bg-[#08121e] text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden border border-white/5">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            
+            <p class="text-[10px] font-black uppercase opacity-50 tracking-[0.3em] text-center mb-2">Precio de Venta Sugerido</p>
+            
+            <div class="flex justify-center items-center mb-6">
+                <span class="text-4xl font-black text-amber-400 mr-2">L</span>
+                <input type="number" id="res-total" class="bg-transparent text-5xl font-black text-center text-amber-400 tracking-tighter outline-none w-full max-w-[220px]">
+            </div>
+
+            <div class="space-y-3 border-t border-white/10 pt-6">
+    <div class="flex justify-between items-start text-slate-400">
+        <span class="text-[9px] font-bold uppercase tracking-widest">Inversión Total</span>
+        <div class="text-right">
+            <span id="res-val-costo-usd" class="text-sm font-black text-white block">$ 0.00</span>
+            <span id="res-val-costo-lps" class="text-[10px] font-bold text-slate-500 block">L 0.00</span>
+        </div>
     </div>
 
-    <div id="sub-tab-analisis" class="hidden space-y-6">
-        <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Distribución de Gastos</h3>
-        <div id="lista-categorias-gastos" class="space-y-4"></div>
+    <div class="flex justify-between items-center text-slate-400">
+        <span class="text-[9px] font-bold uppercase tracking-widest">Margen aplicado</span>
+        <span id="res-val-margen" class="text-sm font-black text-emerald-400">0%</span>
     </div>
+
+    <div class="mt-4 pt-4 border-t border-white/5">
+        <label class="text-[10px] font-black uppercase text-emerald-400 tracking-[0.2em] italic mb-1 block">Utilidad Jessi Shop (Lps)</label>
+        <div class="flex items-center">
+            <span class="text-emerald-400 font-black mr-2">L</span>
+            <input type="number" id="res-val-utilidad-input" 
+                   class="bg-transparent text-xl font-black text-emerald-400 outline-none border-b border-emerald-400/30 focus:border-emerald-400 w-full"
+                   oninput="recalcularDesdeUtilidad()">
+        </div>
+    </div>
+</div>
 </section>
 
-  <section id="tab-ajustes" class="p-4 hidden space-y-6">
-    <h3 class="text-xl font-black px-2">Configuración</h3>
-    <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-      <p class="text-xs font-black text-gray-400 uppercase mb-4 tracking-widest">Añadir Nueva Categoría</p>
-      <input type="text" id="nueva-cat-nombre" placeholder="EJ: COMBUSTIBLE" class="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold mb-3 focus:ring-2 focus:ring-blue-500">
-      <select id="nueva-cat-tipo" class="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold mb-4 text-gray-500 appearance-none">
-        <option value="gasto">Tipo: GASTO</option>
-        <option value="ingreso">Tipo: INGRESO</option>
-      </select>
-      <button onclick="window.crearCategoria()" class="w-full bg-gray-900 text-white font-black py-4 rounded-2xl active:scale-95 transition-all">
-        GUARDAR CATEGORÍA
-      </button>
-    </div>
+     
+
+<style>
+    @keyframes slide-up {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+    .animate-slide-up { animation: slide-up 0.3s ease-out; }
+</style>
+          
+        <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md bg-[#08121e]/90 backdrop-blur-2xl border border-white/10 p-3 flex justify-around items-center z-50 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
     
-    <div class="px-2">
-      <p class="text-xs font-black text-gray-400 uppercase mb-4 tracking-widest">Mis Categorías</p>
-      <div id="lista-ajustes-categorias" class="space-y-2">
-        </div>
+   
+    <button id="nav-calc" onclick="showView('calculator')" class="flex flex-col items-center gap-1 group flex-1 transition-all opacity-100">
+    <div class="p-2 rounded-2xl group-active:scale-90 transition-transform text-amber-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" 
+             style="filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); color: #fbbf24;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+        </svg>
     </div>
-  </section>
-
-  <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-100 px-8 py-4 flex justify-between items-center z-40">
-    <button onclick="window.cambiarTab('dashboard')" class="flex flex-col items-center text-blue-600">
-      <i class="fa-solid fa-house text-xl"></i>
-      <span class="text-[10px] font-black mt-1 uppercase tracking-tighter">Inicio</span>
-    </button>
-    <button onclick="window.cambiarTab('reportes')" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-chart-pie text-xl"></i>
-      <span class="text-[10px] font-black mt-1 uppercase tracking-tighter">Reportes</span>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    </button>
-    <button onclick="window.cambiarTab('ajustes')" class="flex flex-col items-center text-gray-400">
-      <i class="fa-solid fa-gear text-xl"></i>
-      <span class="text-[10px] font-black mt-1 uppercase tracking-tighter">Ajustes</span>
-    </button>
-  </nav>
-
-  <div id="modal-registro" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50">
-    <div class="bg-white w-full max-w-md rounded-t-[3rem] p-8 shadow-2xl animate-slide-up">
-      <div class="flex justify-between items-center mb-6">
-        <h3 id="modal-titulo" class="text-2xl font-black text-gray-800 tracking-tight">Registro</h3>
-        <button onclick="window.cerrarModal()" class="text-gray-300 text-3xl font-light">&times;</button>
-      </div>
-      <div class="space-y-5">
-        <div>
-          <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Monto ($)</label>
-          <input type="number" id="form-monto" class="w-full bg-gray-50 border-none rounded-2xl p-5 text-2xl font-black text-blue-600 focus:ring-2 focus:ring-blue-500" placeholder="0.00">
-        </div>
-        <div>
-          <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Categoría</label>
-          <select id="form-categoria" class="w-full bg-gray-50 border-none rounded-2xl p-5 font-bold text-gray-700 appearance-none">
-            </select>
-        </div>
-        <button onclick="window.guardarEnFirebase()" class="w-full bg-blue-600 text-white font-black py-5 rounded-[2rem] shadow-lg shadow-blue-200 active:scale-95 transition-all">
-          GUARDAR EN NUBE
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-    <script type="module" src="script.js"></script>
-
-  </body>
-  
+    <span class="text-[8px] font-black uppercase tracking-widest italic text-amber-400">Cotizar</span>
+</button>
+</nav>
+     
+     
+    <script type="module" src="turismo.js"></script>
+</body>
 </html>
